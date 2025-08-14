@@ -1,0 +1,16 @@
+{
+  "compatibility_date": "2025-04-01",
+  "main": "src/index.ts",
+  "name": "clique-server",
+  "upload_source_maps": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "127d7c06-efe5-4ac3-a53e-3e1a9f62cf80",
+      "database_name": "d1-clique-database"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
