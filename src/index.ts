@@ -133,7 +133,7 @@ export default {
             return new Response(homeHTML, {
                 headers: {
                     "content-type": "text/html"
-                },
+                }
             });
         }
 
