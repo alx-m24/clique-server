@@ -1,4 +1,3 @@
-const homeHTML = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -121,30 +120,3 @@ const homeHTML = `
     <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>
-
-`;
-
-export default {
-  async fetch(request: Request, env: any) {
-        const url = new URL(request.url);
-
-        if (url.pathname === "/") {
-
-            return new Response(homeHTML, {
-                headers: {
-                    "content-type": "text/html",
-                },
-            });
-        }
-
-        if (url.pathname === "/api/events") {
-            const { results } = await env.DB.prepare("SELECT * FROM events").all();
-
-            return Response.json(results);
-        }
-
-        return new Response("Not Found", {
-            status: 404,
-        });
-  },
-} satisfies ExportedHandler<Env>;
