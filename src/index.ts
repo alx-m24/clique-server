@@ -226,7 +226,7 @@ export default {
                     case "POST":
                         const postData = await request.json() as UserRow;
                         await env.DB.prepare(
-                            "INSERT INTO Users (Name, Surname, UserName, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                            "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
                         ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Password, postData.Email).run();
                         return new Response("Added", { status: 201 });
 
