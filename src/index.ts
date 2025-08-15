@@ -134,20 +134,20 @@ interface AttendanceRow {
 }
 
 interface UserRow {
-    Name: string;
-    Surname: string;
-    UserName: string;
-    Dob: string;
-    Created_At: string;
-    Email: string;
-    Password: string;
+    name: string;
+    surname: string;
+    userName: string;
+    dob: string;
+    created_At: string;
+    email: string;
+    password: string;
 }
 
 interface EventRow {
-    Name: string;
-    Details: string;
-    Date: string;
-    Location: string;
+    name: string;
+    details: string;
+    date: string;
+    location: string;
 }
 
 export default {
@@ -174,7 +174,7 @@ export default {
                 const postData = await request.json() as EventRow;
                 await env.DB.prepare(
                     "INSERT INTO Events (Name, Details, Event_Date, Location) VALUES (?, ?, ?, ?)"
-                ).bind(postData.Name, postData.Details, postData.Date, postData.Location).run();
+                ).bind(postData.name, postData.details, postData.date, postData.location).run();
                 return new Response("Added", { status: 201 });
             }
             return new Response("Method Not Allowed", { status: 405 });
@@ -190,7 +190,7 @@ export default {
                 const postData = await request.json() as UserRow;
                 await env.DB.prepare(
                     "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Email, Password) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Email, postData.Password).run();
+                ).bind(postData.name, postData.surname, postData.userName, postData.dob, postData.created_At, postData.email, postData.password).run();
                 return new Response("Added", { status: 201 });
             }
             return new Response("Method Not Allowed", { status: 405 });
@@ -289,7 +289,7 @@ export default {
                         const postData = await request.json() as EventRow;
                         await env.DB.prepare(
                             "INSERT INTO Events (Name, Details, Event_Date, Location) VALUES (?, ?, ?, ?)"
-                        ).bind(postData.Name, postData.Details, postData.Date, postData.Location).run();
+                        ).bind(postData.name, postData.details, postData.date, postData.location).run();
                         return new Response("Added", { status: 201 });
 
                     case "DELETE":
