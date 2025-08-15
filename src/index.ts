@@ -139,8 +139,8 @@ interface UserRow {
     UserName: string;
     Dob: string;
     Created_At: string;
-    Password: string;
     Email: string;
+    Password: string;
 }
 
 interface EventRow {
