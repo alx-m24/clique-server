@@ -164,20 +164,34 @@ export default {
         }
 
 
-        // List all events
+        // Static endpoint: /api/events
         if (url.pathname === "/api/events") {
             if (method === "GET") {
                 const { results } = await env.DB.prepare("SELECT * FROM Events").all();
                 return Response.json(results);
             }
+            if (method === "POST") {
+                const postData = await request.json() as EventRow;
+                await env.DB.prepare(
+                    "INSERT INTO Events (Name, Details, Event_Date, Location) VALUES (?, ?, ?, ?)"
+                ).bind(postData.Name, postData.Details, postData.Date, postData.Location).run();
+                return new Response("Added", { status: 201 });
+            }
             return new Response("Method Not Allowed", { status: 405 });
         }
 
-        // List all users
+        // static endpoint: /api/users
         if (url.pathname === "/api/users") {
             if (method === "GET") {
                 const { results } = await env.DB.prepare("SELECT * FROM Users").all();
                 return Response.json(results);
+            }
+            if (method === "POST") {
+                const postData = await request.json() as UserRow;
+                await env.DB.prepare(
+                    "INSERT INTO Users (Name, Surname, UserName, Dob, Created_At, Email, Password) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Email, postData.Password).run();
+                return new Response("Added", { status: 201 });
             }
             return new Response("Method Not Allowed", { status: 405 });
         }
@@ -224,14 +238,6 @@ export default {
                         if (results.length === 0) return new Response("User not found", { status: 404 });
                         return Response.json(results[0]);
 
-                    case "POST":
-                        const postData = await request.json() as UserRow;
-
-                        await env.DB.prepare(
-                            "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                        ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Password, postData.Email).run();
-                        return new Response("Added", { status: 201 });
-
                     case "DELETE":
                         await env.DB.prepare(
                             "DELETE FROM Users WHERE User_Id = ?"
@@ -256,14 +262,6 @@ export default {
                             "SELECT User_Id FROM UserEvents WHERE Event_Id = ?"
                         ).bind(eventId).all() as { results: AttendanceRow[] };
                         return Response.json({ userIds: results.map(r => r.User_Id) });
-
-                    case "POST":
-                        const postData = await request.json() as AttendanceRequest;
-
-                        await env.DB.prepare(
-                            "INSERT INTO UserEvents (User_ID, Event_ID) VALUES (?, ?)"
-                        ).bind(postData.User_Id, eventId).run();
-                        return new Response("Added", { status: 201 });
 
                     case "DELETE":
                         const userId = parts[4]; // /api/events/{id}/users/{userid}
