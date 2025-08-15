@@ -133,6 +133,23 @@ interface AttendanceRow {
     User_Id: number;
 }
 
+interface UserRow {
+    Name: string;
+    Surname: string;
+    UserName: string;
+    Dob: string;
+    Created_At: string;
+    Password: string;
+    Email: string;
+}
+
+interface EventRow {
+    Name: string;
+    Details: string;
+    Date: string;
+    Location: string;
+}
+
 export default {
 
     async fetch(request: Request, env: any) {
@@ -197,15 +214,30 @@ export default {
             }
 
             if (!parts[3]) {
-                if (method === "GET") {
-                    const { results } = await env.DB.prepare(
-                        "SELECT * FROM Users WHERE User_Id = ?"
-                    ).bind(userId).all();
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT * FROM Users WHERE User_Id = ?"
+                        ).bind(userId).all();
 
-                    if (results.length === 0) return new Response("Event not found", { status: 404 });
-                    return Response.json(results[0]);
-                } else {
-                    return new Response("Method Not Allowed", { status: 405 });
+                        if (results.length === 0) return new Response("User not found", { status: 404 });
+                        return Response.json(results[0]);
+
+                    case "POST":
+                        const postData = await request.json() as UserRow;
+                        await env.DB.prepare(
+                            "INSERT INTO Users (Name, Surname, UserName, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                        ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Password, postData.Email).run();
+                        return new Response("Added", { status: 201 });
+
+                    case "DELETE":
+                        await env.DB.prepare(
+                            "DELETE FROM Users WHERE User_Id = ?"
+                        ).bind(userId).run();
+                        return new Response("Deleted", { status: 200 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
                 }
             }
         }
@@ -220,7 +252,7 @@ export default {
                     case "GET":
                         const { results } = await env.DB.prepare(
                             "SELECT User_Id FROM UserEvents WHERE Event_Id = ?"
-                        ).bind(eventId).all() as {results:AttendanceRow[]};
+                        ).bind(eventId).all() as { results: AttendanceRow[] };
                         return Response.json({ userIds: results.map(r => r.User_Id) });
 
                     case "POST":
@@ -243,15 +275,30 @@ export default {
             }
 
             if (!parts[3]) {
-                if (method === "GET") {
-                    const { results } = await env.DB.prepare(
-                        "SELECT * FROM Events WHERE Event_Id = ?"
-                    ).bind(eventId).all();
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT * FROM Events WHERE Event_Id = ?"
+                        ).bind(eventId).all();
 
-                    if (results.length === 0) return new Response("Event not found", { status: 404 });
-                    return Response.json(results[0]);
-                } else {
-                    return new Response("Method Not Allowed", { status: 405 });
+                        if (results.length === 0) return new Response("Event not found", { status: 404 });
+                        return Response.json(results[0]);
+
+                    case "POST":
+                        const postData = await request.json() as EventRow;
+                        await env.DB.prepare(
+                            "INSERT INTO Events (Name, Details, Event_Date, Location) VALUES (?, ?, ?, ?)"
+                        ).bind(postData.Name, postData.Details, postData.Date, postData.Location).run();
+                        return new Response("Added", { status: 201 });
+
+                    case "DELETE":
+                        await env.DB.prepare(
+                            "DELETE FROM Events WHERE Event_Id = ?"
+                        ).bind(eventId).run();
+                        return new Response("Deleted", { status: 200 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
                 }
             }
         }
