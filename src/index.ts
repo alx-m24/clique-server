@@ -138,7 +138,7 @@ export default {
         }
 
         if (url.pathname === "/api/events") {
-            const { results } = await env.DB.prepare("SELECT * FROM events").all();
+            const { results } = await env.DB.prepare("SELECT * FROM Events").all();
 
             return Response.json(results);
         }
