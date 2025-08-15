@@ -143,6 +143,12 @@ export default {
             return Response.json(results);
         }
 
+        if (url.pathname === "/api/users") {
+            const { results } = await env.DB.prepare("SELECT * FROM Users").all();
+
+            return Response.json(results);
+        }
+
         return new Response("Not Found", {
             status: 404,
         });
