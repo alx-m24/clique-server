@@ -224,10 +224,7 @@ export default {
                         return Response.json(results[0]);
 
                     case "POST":
-                        const body = await request.json();
-                        console.log("Incoming POST body:", body);
-
-                        const postData = await body as UserRow;
+                        const postData = await request.json() as UserRow;
 
                         await env.DB.prepare(
                             "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
