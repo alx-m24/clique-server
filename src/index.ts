@@ -195,6 +195,19 @@ export default {
                         return new Response("Method Not Allowed", { status: 405 });
                 }
             }
+
+            if (!parts[3]) {
+                if (method === "GET") {
+                    const { results } = await env.DB.prepare(
+                        "SELECT * FROM Users WHERE User_Id = ?"
+                    ).bind(userId).all();
+
+                    if (results.length === 0) return new Response("Event not found", { status: 404 });
+                    return Response.json(results[0]);
+                } else {
+                    return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
         }
 
         // Dynamic endpoints: /api/events/{id}/users
@@ -226,6 +239,19 @@ export default {
 
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
+
+            if (!parts[3]) {
+                if (method === "GET") {
+                    const { results } = await env.DB.prepare(
+                        "SELECT * FROM Events WHERE Event_Id = ?"
+                    ).bind(eventId).all();
+
+                    if (results.length === 0) return new Response("Event not found", { status: 404 });
+                    return Response.json(results[0]);
+                } else {
+                    return new Response("Method Not Allowed", { status: 405 });
                 }
             }
         }
