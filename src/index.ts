@@ -202,11 +202,11 @@ export default {
                         return new Response("Added", { status: 201 });
 
                     case "DELETE":
-                        const delData = await request.json() as AttendanceRequest;
+                        const eventId = parts[4]; // /api/users/{id}/events/{eventId}
                         await env.DB.prepare(
                             "DELETE FROM UserEvents WHERE User_Id = ? AND Event_Id = ?"
-                        ).bind(userId, delData.Event_Id).run();
-                        return new Response("Deleted", { status: 200 });
+                        ).bind(userId, eventId).run();
+                        return new Response("Removed", { status: 200 });
 
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
@@ -263,11 +263,11 @@ export default {
                         return new Response("Added", { status: 201 });
 
                     case "DELETE":
-                        const delData = await request.json() as AttendanceRequest;
+                        const userId = parts[4]; // /api/events/{id}/users/{userid}
                         await env.DB.prepare(
                             "DELETE FROM UserEvents WHERE User_Id = ? AND Event_Id = ?"
-                        ).bind(delData.User_Id, eventId).run();
-                        return new Response("Deleted", { status: 200 });
+                        ).bind(eventId, userId).run();
+                        return new Response("Removed", { status: 200 });
 
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
