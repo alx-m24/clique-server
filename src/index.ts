@@ -224,7 +224,11 @@ export default {
                         return Response.json(results[0]);
 
                     case "POST":
-                        const postData = await request.json() as UserRow;
+                        const body = await request.json();
+                        console.log("Incoming POST body:", body);
+
+                        const postData = await body as UserRow;
+
                         await env.DB.prepare(
                             "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
                         ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Password, postData.Email).run();
@@ -257,6 +261,7 @@ export default {
 
                     case "POST":
                         const postData = await request.json() as AttendanceRequest;
+
                         await env.DB.prepare(
                             "INSERT INTO UserEvents (User_ID, Event_ID) VALUES (?, ?)"
                         ).bind(postData.User_Id, eventId).run();
