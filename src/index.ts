@@ -158,10 +158,24 @@ export default {
 
         // Home page
         if (url.pathname === "/") {
+            const postData: UserRow = {
+                Name: "John",
+                Surname: "Doe",
+                UserName: "johndoe",
+                Dob: "1990-01-01 00:00:00",           // Match your SQLite DATETIME format
+                Created_At: new Date().toISOString().replace('T', ' ').substring(0, 19), // yyyy-MM-dd HH:mm:ss
+                Password: "securepassword",
+                Email: "test@example.com"
+            };
+            await env.DB.prepare(
+                "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            ).bind(postData.Name, postData.Surname, postData.UserName, postData.Dob, postData.Created_At, postData.Password, postData.Email).run();
+
             return new Response(homeHTML, {
                 headers: { "content-type": "text/html" }
             });
         }
+
 
         // List all events
         if (url.pathname === "/api/events") {
