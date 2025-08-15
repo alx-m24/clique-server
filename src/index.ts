@@ -124,33 +124,113 @@ const homeHTML = `
 
 `;
 
+interface AttendanceRequest {
+    Event_Id?: number;
+    User_Id?: number;
+}
+interface AttendanceRow {
+    Event_Id: number;
+    User_Id: number;
+}
+
 export default {
-  async fetch(request: Request, env: any) {
+
+    async fetch(request: Request, env: any) {
         const url = new URL(request.url);
+        const method = request.method;
 
+        // Home page
         if (url.pathname === "/") {
-
             return new Response(homeHTML, {
-                headers: {
-                    "content-type": "text/html"
-                }
+                headers: { "content-type": "text/html" }
             });
         }
 
+        // List all events
         if (url.pathname === "/api/events") {
-            const { results } = await env.DB.prepare("SELECT * FROM Events").all();
-
-            return Response.json(results);
+            if (method === "GET") {
+                const { results } = await env.DB.prepare("SELECT * FROM Events").all();
+                return Response.json(results);
+            }
+            return new Response("Method Not Allowed", { status: 405 });
         }
 
+        // List all users
         if (url.pathname === "/api/users") {
-            const { results } = await env.DB.prepare("SELECT * FROM Users").all();
-
-            return Response.json(results);
+            if (method === "GET") {
+                const { results } = await env.DB.prepare("SELECT * FROM Users").all();
+                return Response.json(results);
+            }
+            return new Response("Method Not Allowed", { status: 405 });
         }
 
-        return new Response("Not Found", {
-            status: 404,
-        });
-  },
+        // Dynamic endpoints: /api/users/{id}/events
+        if (url.pathname.startsWith("/api/users/")) {
+            const parts = url.pathname.split("/").filter(Boolean); // ["api", "users", "{id}", "events"]
+            const userId = parts[2];
+
+            if (parts[3] === "events") {
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT Event_Id FROM UserEvents WHERE User_Id = ?"
+                        ).bind(userId).all() as { results: AttendanceRow[] };
+                        return Response.json({ eventIds: results.map(r => r.Event_Id) });
+
+                    case "POST":
+                        const postData = await request.json() as AttendanceRequest;
+                        await env.DB.prepare(
+                            "INSERT INTO UserEvents (User_ID, Event_ID) VALUES (?, ?)"
+                        ).bind(userId, postData.Event_Id).run();
+                        return new Response("Added", { status: 201 });
+
+                    case "DELETE":
+                        const delData = await request.json() as AttendanceRequest;
+                        await env.DB.prepare(
+                            "DELETE FROM UserEvents WHERE User_Id = ? AND Event_Id = ?"
+                        ).bind(userId, delData.Event_Id).run();
+                        return new Response("Deleted", { status: 200 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
+        }
+
+        // Dynamic endpoints: /api/events/{id}/users
+        if (url.pathname.startsWith("/api/events/")) {
+            const parts = url.pathname.split("/").filter(Boolean); // ["api", "events", "{id}", "users"]
+            const eventId = parts[2];
+
+            if (parts[3] === "users") {
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT User_Id FROM UserEvents WHERE Event_Id = ?"
+                        ).bind(eventId).all() as {results:AttendanceRow[]};
+                        return Response.json({ userIds: results.map(r => r.User_Id) });
+
+                    case "POST":
+                        const postData = await request.json() as AttendanceRequest;
+                        await env.DB.prepare(
+                            "INSERT INTO UserEvents (User_ID, Event_ID) VALUES (?, ?)"
+                        ).bind(postData.User_Id, eventId).run();
+                        return new Response("Added", { status: 201 });
+
+                    case "DELETE":
+                        const delData = await request.json() as AttendanceRequest;
+                        await env.DB.prepare(
+                            "DELETE FROM UserEvents WHERE User_Id = ? AND Event_Id = ?"
+                        ).bind(delData.User_Id, eventId).run();
+                        return new Response("Deleted", { status: 200 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
+        }
+
+        // Not found fallback
+        return new Response("Not Found", { status: 404 });
+    },
 } satisfies ExportedHandler<Env>;
