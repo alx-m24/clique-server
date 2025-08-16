@@ -215,7 +215,7 @@ export default {
                 const postData = await request.json() as LoginRequest;
 
                 if (postData.identifier.includes("@")) {
-                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Email = ? AND Password = ?").bind(postData.identifier, postData.password);
+                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Email = ? AND Password = ?").bind(postData.identifier, postData.password).all();
 
                     if (results.length === 0) {
                         return new Response("Invalid credentials", { status: 401 });
@@ -223,7 +223,7 @@ export default {
                     return Response.json(results[0]);
                 }
                 else {
-                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Username = ? AND Password = ?").bind(postData.identifier, postData.password);
+                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Username = ? AND Password = ?").bind(postData.identifier, postData.password).all();
 
                     if (results.length === 0) {
                         return new Response("Invalid credentials", { status: 401 });
