@@ -150,6 +150,11 @@ interface EventRow {
     location: string;
 }
 
+interface LoginRequest {
+    identifier: string;
+    password: string;
+}
+
 export default {
 
     async fetch(request: Request, env: any) {
@@ -162,7 +167,6 @@ export default {
                 headers: { "content-type": "text/html" }
             });
         }
-
 
         // Static endpoint: /api/events
         if (url.pathname === "/api/events") {
@@ -188,10 +192,44 @@ export default {
             }
             if (method === "POST") {
                 const postData = await request.json() as UserRow;
+
+                // Check if user already exists
+                const existingUser = await env.DB.prepare("SELECT * FROM Users WHERE Username = ? OR Email = ?")
+                    .bind(postData.userName, postData.email).all();
+
+                if (existingUser.results.length > 0) {
+                    return new Response("User already exists", { status: 409 });
+                }
+
                 await env.DB.prepare(
                     "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Email, Password) VALUES (?, ?, ?, ?, ?, ?, ?)"
                 ).bind(postData.name, postData.surname, postData.userName, postData.dob, postData.created_At, postData.email, postData.password).run();
                 return new Response("Added", { status: 201 });
+            }
+            return new Response("Method Not Allowed", { status: 405 });
+        }
+
+        // static endpoint: /api/login
+        if (url.pathname === "/api/login") {
+            if (method === "POST") {
+                const postData = await request.json() as LoginRequest;
+
+                if (postData.identifier.includes("@")) {
+                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Email = ? AND Password = ?").bind(postData.identifier, postData.password);
+
+                    if (results.length === 0) {
+                        return new Response("Invalid credentials", { status: 401 });
+                    }
+                    return Response.json(results[0]);
+                }
+                else {
+                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Username = ? AND Password = ?").bind(postData.identifier, postData.password);
+
+                    if (results.length === 0) {
+                        return new Response("Invalid credentials", { status: 401 });
+                    }
+                    return Response.json(results[0]);
+                }
             }
             return new Response("Method Not Allowed", { status: 405 });
         }
