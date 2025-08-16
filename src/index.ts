@@ -213,23 +213,15 @@ export default {
         if (url.pathname === "/api/login") {
             if (method === "POST") {
                 const postData = await request.json() as LoginRequest;
+                const field = postData.identifier.includes("@") ? "Email" : "Username";
+                const { results } = await env.DB.prepare(`SELECT * FROM Users WHERE ${field} = ? AND Password = ?`)
+                    .bind(postData.identifier, postData.password)
+                    .all();
 
-                if (postData.identifier.includes("@")) {
-                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Email = ? AND Password = ?").bind(postData.identifier, postData.password).all();
+                if (!results || results.length === 0)
+                    return new Response("Invalid credentials", { status: 401 });
 
-                    if (results.length === 0) {
-                        return new Response("Invalid credentials", { status: 401 });
-                    }
-                    return Response.json(results[0]);
-                }
-                else {
-                    const { results } = await env.DB.prepare("SELECT * FROM Users WHERE Username = ? AND Password = ?").bind(postData.identifier, postData.password).all();
-
-                    if (results.length === 0) {
-                        return new Response("Invalid credentials", { status: 401 });
-                    }
-                    return Response.json(results[0]);
-                }
+                return Response.json(results[0]);
             }
             return new Response("Method Not Allowed", { status: 405 });
         }
