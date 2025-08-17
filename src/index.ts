@@ -128,6 +128,7 @@ interface AttendanceRequest {
     Event_Id?: number;
     User_Id?: number;
 }
+
 interface AttendanceRow {
     Event_Id: number;
     User_Id: number;
@@ -153,6 +154,51 @@ interface EventRow {
 interface LoginRequest {
     identifier: string;
     password: string;
+}
+
+function toArrayBuffer(str: string): ArrayBuffer {
+    return new TextEncoder().encode(str);
+}
+
+function toHex(buffer: ArrayBuffer): string {
+    return Array.from(new Uint8Array(buffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+}
+
+// Hash with salt using PBKDF2
+async function hashPassword(password: string, salt?: Uint8Array) {
+    // generate salt if not provided
+    if (!salt) salt = crypto.getRandomValues(new Uint8Array(16));
+
+    const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        toArrayBuffer(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveBits"]
+    );
+
+    const derivedBits = await crypto.subtle.deriveBits(
+        {
+            name: "PBKDF2",
+            salt,
+            iterations: 100_000,
+            hash: "SHA-256",
+        },
+        keyMaterial,
+        256
+    );
+
+    const hashHex = toHex(derivedBits);
+    return { salt: toHex(salt), hash: hashHex };
+}
+
+// Verify password
+async function verifyPassword(password: string, saltHex: string, hashHex: string) {
+    const salt = new Uint8Array(saltHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+    const { hash } = await hashPassword(password, salt);
+    return hash === hashHex;
 }
 
 export default {
@@ -201,6 +247,11 @@ export default {
                     return new Response("User already exists", { status: 409 });
                 }
 
+                // hash password
+                const { salt, hash } = await hashPassword(postData.password);
+                // store salt and hash -> password = salt + hash
+                postData.password = `${salt}:${hash}`;
+
                 await env.DB.prepare(
                     "INSERT INTO Users (Name, Surname, Username, Dob, Created_At, Email, Password) VALUES (?, ?, ?, ?, ?, ?, ?)"
                 ).bind(postData.name, postData.surname, postData.userName, postData.dob, postData.created_At, postData.email, postData.password).run();
@@ -214,13 +265,22 @@ export default {
             if (method === "POST") {
                 const postData = await request.json() as LoginRequest;
                 const field = postData.identifier.includes("@") ? "Email" : "Username";
-                const { results } = await env.DB.prepare(`SELECT * FROM Users WHERE ${field} = ? AND Password = ?`)
-                    .bind(postData.identifier, postData.password)
+                const { results } = await env.DB.prepare(`SELECT * FROM Users WHERE ${field} = ?`)
+                    .bind(postData.identifier)
                     .all();
 
                 if (!results || results.length === 0)
                     return new Response("Invalid credentials", { status: 401 });
 
+                // Verify password
+                const user = results[0] as UserRow;
+                const [salt, hash] = user.password.split(":");
+
+                const isValid = await verifyPassword(postData.password, salt, hash);
+
+                if (!isValid) {
+                    return new Response("Invalid password", { status: 401 });
+                }
                 return Response.json(results[0]);
             }
             return new Response("Method Not Allowed", { status: 405 });
