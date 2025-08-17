@@ -273,8 +273,8 @@ export default {
                     return new Response("Invalid credentials", { status: 401 });
 
                 // Verify password
-                const user = results[0] as UserRow;
-                const [salt, hash] = user.password.split(":");
+                const password = results[0]["Password"] as string;
+                const [salt, hash] = password.split(":");
 
                 const isValid = await verifyPassword(postData.password, salt, hash);
 
