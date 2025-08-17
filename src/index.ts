@@ -201,6 +201,11 @@ async function verifyPassword(password: string, saltHex: string, hashHex: string
     return hash === hashHex;
 }
 
+function sanitizeUser(user: any) {
+    const { Password, ...safe } = user; // add any other fields you want hidden
+    return safe;
+}
+
 export default {
 
     async fetch(request: Request, env: any) {
@@ -234,7 +239,11 @@ export default {
         if (url.pathname === "/api/users") {
             if (method === "GET") {
                 const { results } = await env.DB.prepare("SELECT * FROM Users").all();
-                return Response.json(results);
+
+                // strip the password from each user
+                const safeResults = results.map(sanitizeUser);
+
+                return Response.json(safeResults);
             }
             if (method === "POST") {
                 const postData = await request.json() as UserRow;
@@ -326,7 +335,11 @@ export default {
                         ).bind(userId).all();
 
                         if (results.length === 0) return new Response("User not found", { status: 404 });
-                        return Response.json(results[0]);
+
+                        // strip the password from each user
+                        const safeResults = results.map(sanitizeUser);
+
+                        return Response.json(safeResults);
 
                     case "DELETE":
                         await env.DB.prepare(
