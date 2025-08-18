@@ -297,8 +297,7 @@ export default {
                     return new Response("Invalid password", { status: 401 });
                 }
 
-                const { safeResults } = results.map(sanitizeUser);
-
+                const safeResults = results.map(sanitizeUser);
                 return Response.json(safeResults[0]);
             }
             return new Response("Method Not Allowed", { status: 405 });
