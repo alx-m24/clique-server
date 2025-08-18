@@ -296,7 +296,10 @@ export default {
                 if (!isValid) {
                     return new Response("Invalid password", { status: 401 });
                 }
-                return Response.json(results[0]);
+
+                const { safeResults } = results.map(sanitizeUser);
+
+                return Response.json(safeResults[0]);
             }
             return new Response("Method Not Allowed", { status: 405 });
         }
@@ -340,12 +343,12 @@ export default {
                             "SELECT * FROM Users WHERE User_Id = ?"
                         ).bind(userId).all();
 
-                        if (results.length === 0) return new Response("User not found", { status: 404 });
+                        if (!results || results.length === 0) return new Response("User not found", { status: 404 });
 
                         // strip the password from each user
                         const safeResults = results.map(sanitizeUser);
 
-                        return Response.json(safeResults);
+                        return Response.json(safeResults[0]);
 
                     case "DELETE":
                         await env.DB.prepare(
