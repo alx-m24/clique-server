@@ -206,9 +206,15 @@ function sanitizeUser(user: any) {
     return safe;
 }
 
-export default {
+const API_KEY: string = "bh3dmUm8wX23mAwiJTdkSBQFFI3jSqk4"
 
+export default {
     async fetch(request: Request, env: any) {
+        const key = request.headers.get("clique-api-key");
+        if (key !== API_KEY) {
+            return new Response("Unauthorized", { status: 401 });
+        }
+
         const url = new URL(request.url);
         const method = request.method;
 
