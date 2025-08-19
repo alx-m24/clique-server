@@ -360,20 +360,16 @@ export default {
                             },
                         });
 
-                    case "POST": {
+                    case "POST":
                         // Read the bytes directly from the request
                         const arrayBuffer = await request.arrayBuffer();
                         const bytes = new Uint8Array(arrayBuffer);
 
                         // Store in DB
                         await env.DB.prepare(
-                            "UPDATE Users_AdditionalInfo SET ProfilePicture = ? WHERE User_Id = ?"
-                        )
-                            .bind(bytes, userId)
-                            .run();
-
+                            "INSERT INTO Users_AdditionalInfo (User_Id, ProfilePicture) VALUES(?, ?) ON CONFLICT(User_Id) DO UPDATE SET ProfilePicture = excluded.ProfilePicture; "
+                        ).bind(bytes, userId).run()
                         return new Response("OK", { status: 201 });
-                    }
 
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
