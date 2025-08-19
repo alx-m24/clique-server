@@ -353,10 +353,13 @@ export default {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        return new Response(pic, {
+                        // Slice the exact bytes if necessary
+                        const exactPic = pic.subarray(0, 2569); // or use pic.slice(0, pic.byteLength) if available
+
+                        return new Response(exactPic, {
                             headers: {
                                 "Content-Type": "application/octet-stream",
-                                "Content-Length": `${pic.length}`
+                                "Content-Length": `${exactPic.length}`
                             },
                         });
 
