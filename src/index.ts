@@ -365,7 +365,7 @@ export default {
                         }
 
                         // Return raw bytes
-                        return new Response(picBytes, {
+                        return new Response(picBytes.buffer, {
                             headers: {
                                 "Content-Type": "application/octet-stream",
                             },
