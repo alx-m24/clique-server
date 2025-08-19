@@ -353,23 +353,12 @@ export default {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        // Convert to Uint8Array if needed
-                        let picBytes: Uint8Array;
-                        if (pic instanceof ArrayBuffer) {
-                            picBytes = new Uint8Array(pic);
-                        } else if (pic instanceof Uint8Array) {
-                            picBytes = pic;
-                        } else {
-                            // Some drivers return it as string
-                            picBytes = new TextEncoder().encode(pic);
-                        }
-
-                        // Return raw bytes
-                        return new Response(picBytes.buffer, {
+                        return new Response(pic.buffer, {
                             headers: {
                                 "Content-Type": "application/octet-stream",
                             },
                         });
+
 
                     case "POST":
                         // Read the bytes directly from the request
