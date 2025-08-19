@@ -216,7 +216,7 @@ export default {
     async fetch(request: Request, env: any) {
         const key = request.headers.get("x-api-key");
         if (key !== API_KEY) {
-            //return new Response("Unauthorized", { status: 401 });
+            return new Response("Unauthorized", { status: 401 });
         }
 
         const url = new URL(request.url);
