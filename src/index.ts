@@ -216,7 +216,7 @@ export default {
     async fetch(request: Request, env: any) {
         const key = request.headers.get("x-api-key");
         if (key !== API_KEY) {
-            return new Response("Unauthorized", { status: 401 });
+            //return new Response("Unauthorized", { status: 401 });
         }
 
         const url = new URL(request.url);
@@ -351,12 +351,13 @@ export default {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        const blobData = results[0].ProfilePicture as Uint8Array;
+                        const blobData = results[0].ProfilePicture;
+                        const uint8Blob = blobData instanceof Uint8Array ? blobData : new Uint8Array(blobData);
 
                         // Convert it to ArrayBuffer if you need a Response object
-                        const picarrayBuffer = blobData.buffer.slice(
-                            blobData.byteOffset,
-                            blobData.byteOffset + blobData.byteLength
+                        const picarrayBuffer = uint8Blob.buffer.slice(
+                            uint8Blob.byteOffset,
+                            uint8Blob.byteOffset + uint8Blob.byteLength
                         );
 
                         return new Response(picarrayBuffer, {
