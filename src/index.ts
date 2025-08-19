@@ -354,9 +354,11 @@ export default {
                         }
 
                         return new Response(pic, {
-                            headers: { "Content-Type": "application/octet-stream" },
+                            headers: {
+                                "Content-Type": "application/octet-stream",
+                                "Content-Length": `${pic.length}`
+                            },
                         });
-
 
 
                     case "POST":
