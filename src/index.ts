@@ -368,7 +368,7 @@ export default {
                         // Store in DB
                         await env.DB.prepare(
                             "INSERT INTO Users_AdditionalInfo (User_Id, ProfilePicture) VALUES(?, ?) ON CONFLICT(User_Id) DO UPDATE SET ProfilePicture = excluded.ProfilePicture; "
-                        ).bind(bytes, userId).run()
+                        ).bind(userId, bytes).run()
                         return new Response("OK", { status: 201 });
 
                     default:
