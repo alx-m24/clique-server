@@ -351,10 +351,10 @@ export default {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        const blobData = results[0].data as Uint8Array;
+                        const blobData = results[0].ProfilePicture as Uint8Array;
 
                         // Convert it to ArrayBuffer if you need a Response object
-                        const picarrayBuffer = blobData.slice(
+                        const picarrayBuffer = blobData.buffer.slice(
                             blobData.byteOffset,
                             blobData.byteOffset + blobData.byteLength
                         );
