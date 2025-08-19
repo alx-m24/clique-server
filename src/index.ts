@@ -353,11 +353,11 @@ export default {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        return new Response(pic.buffer, {
-                            headers: {
-                                "Content-Type": "application/octet-stream",
-                            },
+                        // Important: use `bytes` directly, not `.buffer`
+                        return new Response(pic, {
+                            headers: { "Content-Type": "application/octet-stream" },
                         });
+
 
 
                     case "POST":
