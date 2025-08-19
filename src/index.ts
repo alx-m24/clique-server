@@ -347,19 +347,21 @@ export default {
                             "SELECT ProfilePicture FROM Users_AdditionalInfo WHERE User_Id = ?"
                         ).bind(userId).all();
 
-                        const pic: Uint8Array | undefined = results[0]?.ProfilePicture;
-
-                        if (!pic) {
+                        if (results.length === 0) {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        // Slice the exact bytes if necessary
-                        const exactPic = pic.subarray(0, 2569); // or use pic.slice(0, pic.byteLength) if available
+                        const blobData = results[0].data as Uint8Array;
 
-                        return new Response(exactPic, {
+                        // Convert it to ArrayBuffer if you need a Response object
+                        const picarrayBuffer = blobData.buffer.slice(
+                            blobData.byteOffset,
+                            blobData.byteOffset + blobData.byteLength
+                        );
+
+                        return new Response(picarrayBuffer, {
                             headers: {
-                                "Content-Type": "application/octet-stream",
-                                "Content-Length": `${exactPic.length}`
+                                "Content-Type": "image/png", // or whatever type you stored
                             },
                         });
 
