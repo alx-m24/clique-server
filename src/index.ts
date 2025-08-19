@@ -361,7 +361,7 @@ export default {
 
                         return new Response(picarrayBuffer, {
                             headers: {
-                                "Content-Type": "image/png", // or whatever type you stored
+                                "Content-Type": "image/jpeg", // or whatever type you stored
                             },
                         });
 
