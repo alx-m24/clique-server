@@ -134,6 +134,10 @@ interface AttendanceRow {
     User_Id: number;
 }
 
+interface ProfilePicRow {
+    ProfilePicture: Uint8Array | null;
+}
+
 interface UserRow {
     name: string;
     surname: string;
@@ -329,6 +333,47 @@ export default {
                             "DELETE FROM UserEvents WHERE User_Id = ? AND Event_Id = ?"
                         ).bind(userId, eventId).run();
                         return new Response("Removed", { status: 200 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
+
+            if (parts[3] === "profilepicture")
+            {
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT ProfilePicture FROM Users_AdditionalInfo WHERE User_Id = ?"
+                        ).bind(userId).all() as { results: ProfilePicRow[] };
+
+                        const pic = results[0]?.ProfilePicture;
+
+                        if (!pic) {
+                            return new Response("Not found", { status: 404 });
+                        }
+
+                        // Return raw bytes
+                        return new Response(pic, {
+                            headers: {
+                                "Content-Type": "application/octet-stream",
+                            },
+                        });
+
+                    case "POST": {
+                        // Read the bytes directly from the request
+                        const arrayBuffer = await request.arrayBuffer();
+                        const bytes = new Uint8Array(arrayBuffer);
+
+                        // Store in DB
+                        await env.DB.prepare(
+                            "UPDATE Users_AdditionalInfo SET ProfilePicture = ? WHERE User_Id = ?"
+                        )
+                            .bind(bytes, userId)
+                            .run();
+
+                        return new Response("OK", { status: 201 });
+                    }
 
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
