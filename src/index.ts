@@ -356,12 +356,12 @@ export default {
                         // Convert to Uint8Array if needed
                         let picBytes: Uint8Array;
                         if (pic instanceof ArrayBuffer) {
-                            const picBytes = new Uint8Array(pic);
+                            picBytes = new Uint8Array(pic);
                         } else if (pic instanceof Uint8Array) {
-                            const picBytes = pic;
+                            picBytes = pic;
                         } else {
                             // Some drivers return it as string
-                            const picBytes = new TextEncoder().encode(pic);
+                            picBytes = new TextEncoder().encode(pic);
                         }
 
                         // Return raw bytes
