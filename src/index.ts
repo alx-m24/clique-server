@@ -354,7 +354,7 @@ export default {
                         const blobData = results[0].data as Uint8Array;
 
                         // Convert it to ArrayBuffer if you need a Response object
-                        const picarrayBuffer = blobData.buffer.slice(
+                        const picarrayBuffer = blobData.slice(
                             blobData.byteOffset,
                             blobData.byteOffset + blobData.byteLength
                         );
