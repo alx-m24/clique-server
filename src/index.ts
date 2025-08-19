@@ -345,15 +345,14 @@ export default {
                     case "GET":
                         const { results } = await env.DB.prepare(
                             "SELECT ProfilePicture FROM Users_AdditionalInfo WHERE User_Id = ?"
-                        ).bind(userId).all() as { results: ProfilePicRow[] };
+                        ).bind(userId).all();
 
-                        const pic = results[0]?.ProfilePicture;
+                        const pic: Uint8Array | undefined = results[0]?.ProfilePicture;
 
                         if (!pic) {
                             return new Response("Not found", { status: 404 });
                         }
 
-                        // Important: use `bytes` directly, not `.buffer`
                         return new Response(pic, {
                             headers: { "Content-Type": "application/octet-stream" },
                         });
