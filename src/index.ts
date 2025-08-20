@@ -134,8 +134,8 @@ interface AttendanceRow {
     User_Id: number;
 }
 
-interface ProfilePicRow {
-    ProfilePicture: Uint8Array | null;
+interface BioRow {
+    Bio: string;
 }
 
 interface UserRow {
@@ -377,6 +377,33 @@ export default {
                             "INSERT INTO Users_AdditionalInfo (User_Id, ProfilePicture) VALUES(?, ?) ON CONFLICT(User_Id) DO UPDATE SET ProfilePicture = excluded.ProfilePicture; "
                         ).bind(userId, bytes).run()
                         return new Response("OK", { status: 201 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
+
+            if (parts[3] === "bio") {
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT Bio FROM Users_AdditionalInfo WHERE User_Id = ?"
+                        ).bind(userId).all() as { results: BioRow[] };
+
+                        if (results.length === 0) {
+                            return new Response("Not found", { status: 404 });
+                        }
+
+                        return Response.json(results[0]);
+
+
+                    case "POST":
+                        const postData = await request.json() as BioRow;
+                        // Store in DB
+                        await env.DB.prepare(
+                            "INSERT INTO Users_AdditionalInfo (User_Id, Bio) VALUES(?, ?) ON CONFLICT(User_Id) DO UPDATE SET Bio = excluded.Bio; "
+                        ).bind(userId, postData.Bio).run()
+                        return new Response("OK", { status: 200 });
 
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
