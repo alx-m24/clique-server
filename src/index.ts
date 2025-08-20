@@ -135,7 +135,7 @@ interface AttendanceRow {
 }
 
 interface BioRow {
-    Bio: string;
+    bio: string;
 }
 
 interface UserRow {
@@ -402,7 +402,7 @@ export default {
                         // Store in DB
                         await env.DB.prepare(
                             "INSERT INTO Users_AdditionalInfo (User_Id, Bio) VALUES(?, ?) ON CONFLICT(User_Id) DO UPDATE SET Bio = excluded.Bio; "
-                        ).bind(userId, postData.Bio).run()
+                        ).bind(userId, postData.bio).run();
                         return new Response("OK", { status: 200 });
 
                     default:
