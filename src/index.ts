@@ -155,6 +155,15 @@ interface EventRow {
     location: string;
 }
 
+interface InterestRow {
+    name: string;
+}
+
+interface InterestRequest {
+    User_Id: number;
+    Interest_Id: number;
+}
+
 interface LoginRequest {
     identifier: string;
     password: string;
@@ -242,6 +251,7 @@ export default {
                 ).bind(postData.name, postData.details, postData.date, postData.location).run();
                 return new Response("Added", { status: 201 });
             }
+            if (method == "DELETE")
             return new Response("Method Not Allowed", { status: 405 });
         }
 
@@ -279,6 +289,22 @@ export default {
             return new Response("Method Not Allowed", { status: 405 });
         }
 
+        // statuc endpoint: /api/interests
+        if (url.pathname === "/api/interests") {
+            if (method == "GET") {
+                const { results } = await env.DB.prepare("SELECT * FROM Interests").all();
+                return Response.json(results);
+            }
+            if (method == "POST") {
+                const postData = await request.json() as InterestRow;
+                await env.DB.prepare(
+                    "INSERT INTO Interests (Name) VALUES (?)"
+                ).bind(postData.name).run();
+                return new Response("Added", { status: 201 });
+            }
+            return new Response("Method Not Allowed", { status: 405 });
+        }
+
         // static endpoint: /api/login
         if (url.pathname === "/api/login") {
             if (method === "POST") {
@@ -309,7 +335,7 @@ export default {
 
         // Dynamic endpoints: /api/users/{id}/events
         if (url.pathname.startsWith("/api/users/")) {
-            const parts = url.pathname.split("/").filter(Boolean); // ["api", "users", "{id}", "events"]
+            const parts = url.pathname.split("/").filter(Boolean); // ["api", "users", "{id}", "events"/"interests"]
             const userId = parts[2];
 
             if (parts[3] === "events") {
@@ -332,6 +358,33 @@ export default {
                         await env.DB.prepare(
                             "DELETE FROM UserEvents WHERE User_Id = ? AND Event_Id = ?"
                         ).bind(userId, eventId).run();
+                        return new Response("Removed", { status: 200 });
+
+                    default:
+                        return new Response("Method Not Allowed", { status: 405 });
+                }
+            }
+
+            if (parts[3] === "interests") {
+                switch (method) {
+                    case "GET":
+                        const { results } = await env.DB.prepare(
+                            "SELECT Interest_Id FROM UserInterests WHERE User_Id = ?"
+                        ).bind(userId).all() as { results: InterestRequest[] };
+                        return Response.json({ interestIds: results.map(r => r.Interest_Id) });
+
+                    case "POST":
+                        const postData = await request.json() as InterestRequest;
+                        await env.DB.prepare(
+                            "INSERT INTO UserInterests (User_ID, Interest_Id) VALUES (?, ?)"
+                        ).bind(userId, postData.Interest_Id).run();
+                        return new Response("Added", { status: 201 });
+
+                    case "DELETE":
+                        const interestId = parts[4]; // /api/users/{id}/interests/{Interest_Id}
+                        await env.DB.prepare(
+                            "DELETE FROM UserInterests WHERE User_Id = ? AND Interest_Id = ?"
+                        ).bind(userId, interestId).run();
                         return new Response("Removed", { status: 200 });
 
                     default:
@@ -487,6 +540,29 @@ export default {
                     default:
                         return new Response("Method Not Allowed", { status: 405 });
                 }
+            }
+        }
+
+        // Dybanux endpoints: /api/interests/{id}
+        if (url.pathname.startsWith("/api/interests/")) {
+            const parts = url.pathname.split("/").filter(Boolean); // ["api", "interests", "{id}"]
+            const interestId = parts[2];
+
+            switch (method) {
+                case "GET":
+                    const { results } = await env.DB.prepare(
+                        "SELECT Name FROM Interests WHERE Interest_Id = ?"
+                    ).bind(interestId).all();
+                    return Response.json(results);
+
+                case "DELETE":
+                    await env.DB.prepare(
+                        "DELETE FROM Interests WHERE Interest_Id = ?"
+                    ).bind(interestId).run();
+                    return new Response("Removed", { status: 200 });
+
+                default:
+                    return new Response("Method Not Allowed", { status: 405 });
             }
         }
 
